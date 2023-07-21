@@ -154,8 +154,6 @@ def get_start_end_dates(devices_selected):
     sort_picture_video_audio_raw(start_date, end_date, devices_selected)
 
 
-
-
 def sort_picture_video_audio_raw(start_date, end_date, devices_selected):
     picture_formats = (".jpg",".png",".gif",".bmp",".tiff",".webp",".svg",".ico",".eps",".raw")
     raw_picture_formats = (".arw",".cr2",".nef",".raf",".dng",".orf",".rw2",".srw",".pef",".3fr",".mos",".x3f",".fff",".mef",".arq",)
@@ -163,133 +161,86 @@ def sort_picture_video_audio_raw(start_date, end_date, devices_selected):
     audio_formats = (".mp3",".wav",".flac",".aac",".ogg",".wma",".m4a",".ape",".alac",".opus")
     pictures_directory = os.path.join(os.environ['USERPROFILE'], 'Pictures')
     videos_directory = os.path.join(os.environ['USERPROFILE'], 'Videos')
-    selected_picture_dates = []
-    selected_video_dates = []
-    selected_audio_dates = []
-    selected_files = []
-
-    def select_file_if_within_date_range(file, file_path):                     
+    folders_created = []
+    
+    def select_file_if_within_date_range(file, file_path):
         modified_date = datetime.date.fromtimestamp(os.path.getmtime(file_path))
         if start_date <= modified_date <= end_date:
-            #selected_files.append((file_path, modified_date))
             formatted_date = modified_date.strftime("%Y-%m-%d")
             print("File selected: ", file, " - ", formatted_date)
             return True, formatted_date
-            #if formatted_date not in selected_dates:
-            #   selected_dates.append(formatted_date)
-    
-    def create_folder(directory, date):
-        folder_path = os.path.join(directory, date)
-        os.makedirs(folder_path, exist_ok=True)
-        print("Created folder: ", folder_path)
+        else:
+            return False, "_" 
+        
+    def create_folder(file_path, root_target_directory, file_name, date, subfolder_name, tr_fa):
+        folder_path = os.path.join(root_target_directory, date)
+        folder_path_file_name = os.path.join(folder_path, file_name)
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path, exist_ok=True)
+            folders_created.append(folder_path)
+            print("Created folder: ", folder_path)
+            if not os.path.exists(folder_path_file_name):
+                copy_file(file_name, file_path, folder_path)
+            else:
+                create_folder(file_path, root_target_directory, file_name, date, "Duplicate Files", True)
+        elif tr_fa:
+            subfolder_path = os.path.join(folder_path, subfolder_name)
+            subfolder_path_file_name = os.path.join(subfolder_path, file_name)
+            if not os.path.exists(subfolder_path):
+                os.makedirs(subfolder_path)
+                folders_created.append(subfolder_path)
+                print("Created folder: ", subfolder_path)
+            if not os.path.exists(subfolder_path_file_name):
+                copy_file(file_name, file_path, subfolder_path_file_name)
+            else:
+                create_folder(file_path, root_target_directory, file_name, date, "Duplicate Files", True )
+        else:
+            folder_path_file_name = os.path.join(folder_path, file_name)
+            if not os.path.exists(folder_path_file_name):
+                copy_file(file_name, file_path, folder_path)
+            else:
+                create_folder(file_path, root_target_directory, file_name, date, "Duplicate Files", True )
+
+
+    def copy_file(file_name, source_directory, destination_file_path):
+        shutil.copy(source_directory, destination_file_path)
+        print("Copied file:", file_name, "to", destination_file_path)
 
     for selected_dir in devices_selected:
         for root, dirs, files in os.walk(selected_dir[1]):
             for file in files:
-                if files:
+                if files:            
                     file_path = os.path.join(root, file)
+
                     if file.lower().endswith(picture_formats):
                         true_false, formatted_date = select_file_if_within_date_range(file, file_path)
                         if true_false:
-                            create_folder(pictures_directory, formatted_date)
+                            create_folder(file_path, pictures_directory, file, formatted_date, "_", False)
 
                     elif file.lower().endswith(raw_picture_formats):
                         true_false, formatted_date = select_file_if_within_date_range(file, file_path)
                         if true_false:
-                            raw_directory = os.path.join(pictures_directory, formatted_date)
-                            create_folder(raw_directory, formatted_date)
+                            create_folder(file_path, pictures_directory, file, formatted_date, "RAW", True)
 
                     elif file.lower().endswith(video_formats):
                         true_false, formatted_date = select_file_if_within_date_range(file, file_path)
                         if true_false:
-                            create_folder(videos_directory, formatted_date)
+                            create_folder(file_path, videos_directory, file, formatted_date, "_", False)
+
 
                     elif file.lower().endswith(audio_formats):
                         true_false, formatted_date = select_file_if_within_date_range(file, file_path)
                         if true_false:
-                            audio_directory = os.path.join(videos_directory, formatted_date)
-                            create_folder(audio_directory, formatted_date)
+                            create_folder(file_path, pictures_directory, file, formatted_date, "Audio", True)
 
                     else:
                         print(file, "is not picture, video, or audio file.")
-    input("we made it here.")
-#    if len(selected_files) == 0:
-#        print("No files selected.")
-#        if start_over_or_quit():
-#            # I think this is broke
-#            choose_devices_to_transefer_from()
-#        else:
-#            on_closing(12)
-#    else:
-#        if selected_picture_dates:
-#            print("Picture Dates:")
-#            for picture_date in selected_picture_dates:
-#                print(picture_date)
-#        if selected_video_dates:
-#            print("\nVideo Dates:")
-#            for video_date in selected_video_dates:
-#                print(video_date)
-#        if selected_audio_dates:
-#            print("\nAudio Dates:")
-#            for audio_date in selected_audio_dates:
-#                print(audio_date)
-#        #create_folders_by_date(selected_picture_dates, selected_video_dates, selected_audio_dates, selected_files)
-#
-#
-#def create_folders_by_date(selected_picture_dates, selected_video_dates, selected_audio_dates, selected_files):
-#
-#    
-#    #old code
-#    if user_input_yes_no("Create folders at: " + target_directory_base):
-#        open_file_explorer(target_directory_base)
-#        for item in selected_dates:
-#            folder_name = item
-#            target_directory = os.path.join(target_directory_base, folder_name)
-#            os.makedirs(target_directory, exist_ok=True)
-#            
-#            arw_folder_path = os.path.join(target_directory, "ARW")
-#            os.makedirs(arw_folder_path, exist_ok=True)
-#
-#            print("Created folder:", target_directory)
-#            print("Created folder:", arw_folder_path)
-#
-#    else:
-#        while True:
-#            input_target_directory = input("What directory would you like to use?").strip('"\'')
-#            if not os.path.isdir(input_target_directory):
-#                print("Not a valid directory. Please try again.")
-#            else:
-#                open_file_explorer(input_target_directory)
-#                for item in selected_dates:
-#                    folder_name = item
-#                    target_directory = os.path.join(input_target_directory, folder_name)
-#                    os.makedirs(target_directory, exist_ok=True)
-#                    
-#                    arw_folder_path = os.path.join(target_directory, "ARW")
-#                    os.makedirs(arw_folder_path, exist_ok=True)
-#
-#                    print("Created folder:", target_directory)
-#                    print("Created folder:", arw_folder_path)
-#                break
-#    # copy_files_to_folders(selected_files, target_directory_base)
-#
-#def copy_files_to_folders(selected_files, target_directory_base):
-#    for item in selected_files:
-#        file_path = item[0]
-#        file_date = item[1]
-#        destination_file_path = os.path.join(target_directory_base, str(file_date))
-#
-#        if item[0].lower().endswith("jpg" or "png"):
-#            shutil.copy(file_path, destination_file_path)
-#            print("Copied file:", file_path, "to", destination_file_path)
-#        elif item[0].lower().endswith(".arw"):
-#            arw_destination_file_path = os.path.join(destination_file_path, "ARW")
-#            shutil.copy(file_path, arw_destination_file_path)
-#            print("Copied file:", file_path, "to", arw_destination_file_path)
-#        else:
-#            print("File is not a .jpg .png or .arw", file_path)         
-#
-#    print("Files transferred successfully!")
-#    input("Process completed. Press Enter to exit...")
+
+    print("Folders created: ")
+    for item in folders_created:
+        print(item)
+
+
+    input("Yay! I think this is working? Bugs? I am sure!")
 
 check_device_avaiablity()
