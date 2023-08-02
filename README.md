@@ -1,10 +1,18 @@
-# File-Transfer-From-Camera
+# Transfer_Pic_Vid_Audio_From_SD-Cards
 
 ```
-Camera Picture Transfer.py takes in date range as start_date, end_date.
-Then loops over source_folder for date range and outputs array of selected_dates, selected_files
-It creates a folder for every date in selected_dates with a subfolder ARW and a names of selected_dates
-it copys .jpg from selected_files from source_folder to dated folder
-and .arw from selected_files from source_folder to dated folder subfolder called ARW.
+Moves Pictures, Videos, and Audio files from SD-Cards to C:\Pictures\"File_Date" or C:\Video\"File_Date" 
+
+Transfer_Pic_Vid_Audio_From_SD-Cards.py takes in date range as start_date, end_date.
+Checks for avaiable drives (Hard coded in var "devices")
+Prompts y/n for each drive to be added to "devices_selected"
+Asks for start and end date for files you want to move.
+walks folders in all "devices_selected"
+Creates folders named as the file date.
+For non RAW pictures copys files to windows directory \pictures\"File_Date"
+For RAW pictures copys files to windows \pictures\"File_Date"\ARW
+For Video copys files to windows directory \video\"File_Date"
+For Audio copys files to windows directory \video\"File_Date"\Audio
+
 
 ```
